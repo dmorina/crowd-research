@@ -139,6 +139,8 @@ def ub_login(request):
     elif request.method == 'POST':
         status =403
     return render(request, 'login.html',{'form':form},status=status)
+
+
 def home(request):
     return render(request,'home.html')
 

@@ -67,14 +67,17 @@ WSGI_APPLICATION = 'crowdresearch.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'crowdresearch.db'
-
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'crowdresearch',
+        'USER': 'dmorina',
+        'PASSWORD': 'VntNVvpsqvmoYvJ0',
+        'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
+        'PORT': '3306',
     }
 }
+
 
 # Internationalization
 
