@@ -163,7 +163,8 @@ class UserProfile(TemplateView):
         self.user_profile = get_model_or_none(models.UserProfile, username=kwargs['username'])
         if self.user_profile is None:
             return render(request,'404.html')
-        return render(request, 'profile.html', {'user_profile': self.user_profile})
+        friends = self.user_profile.friends.all()
+        return render(request, 'profile.html', {'user': self.user_profile, 'friends': friends})
 
 
 class ForgotPassword(TemplateView):

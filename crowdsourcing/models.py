@@ -45,7 +45,7 @@ class UserProfile(User):
     nationality = models.ManyToManyField(Country)
     verified = models.BooleanField(default=False)
     picture = models.BinaryField(null=True)
-    friends = models.ManyToManyField('self', through='Friendship', through_fields=('user_source','user_source'), symmetrical=False)
+    friends = models.ManyToManyField('self', through='Friendship', through_fields=('user_source','user_target'), symmetrical=False)
     roles = models.ManyToManyField(Role, through='UserRoles')
     #def __init__(self):
         #super().__init__()
@@ -54,7 +54,7 @@ class Skill(models.Model):
     name = models.CharField(max_length=128)
     description = models.CharField(max_length=512)
     verified = models.BooleanField(default=False)
-    parent = models.ForeignKey('self')
+    parent = models.ForeignKey('self', null=True)
 
 class Worker(UserProfile):
     skills = models.ManyToManyField(Skill, through='WorkerSkill')
