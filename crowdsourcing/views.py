@@ -10,49 +10,8 @@ from crowdresearch import settings
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.models import User
 from django.views.generic import TemplateView
-
+from django.utils.decorators import method_decorator
 import re
-def register(request):
-    form = RegistrationForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        username = ''
-        data = request.POST.copy()
-        user_check = User.objects.filter(username=data['first_name']+'.'+data['last_name'])
-        if not user_check:
-            username = data['first_name']+'.'+data['last_name']
-        else:
-            #TODO username generating function
-            pass
-        data['username'] = username#data['email']
-        from crowdsourcing.models import RegistrationModel
-        #temp
-        #from django.contrib.auth.admin import UserAdmin
-        #User._meta.get_field('username').max_length = 75
-        #User._meta.get_field('username').validators[0].limit_value = 75
-        #UserAdmin.form.base_fields['username'].max_length = 75
-        #UserAdmin.form.base_fields['username'].validators[0].limit_value = 75
-        #end temp
-
-        #user = User.objects.create_user(data['username'],data['email'],data['password1'])
-        #user.is_active = 1
-        #user.save()
-        user_profile = models.UserProfile.objects.create_user(data['username'],data['email'],data['password1'])
-        user_profile.is_active = 1
-        user_profile.first_name = data['first_name']
-        user_profile.last_name = data['last_name']
-        user_profile.save()
-        salt = hashlib.sha1(str(random.random()).encode('utf-8')).hexdigest()[:5]
-        username = user_profile.username
-        if isinstance(username, str):
-            username = username.encode('utf-8')
-        activation_key = hashlib.sha1(salt.encode('utf-8')+username).hexdigest()
-        registration_model = RegistrationModel()
-        registration_model.user = User.objects.get(id=user_profile.id)
-        registration_model.activation_key = activation_key
-        #send_activation_email(email=username,host=request.get_host(),activation_key=activation_key)
-        registration_model.save()
-        return HttpResponseRedirect('/registration-successful/')
-    return render(request,'registration/register.html',{'form':form})
 
 def send_activation_email(email,host,activation_key):
     from django.core.mail import EmailMultiAlternatives
@@ -95,50 +54,9 @@ def forgot_password(request):
 def registration_successful(request):
     return render(request,'registration/registration_successful.html')
 
-
 def terms(request):
     return render(request,'registration/terms.html')
 
-def logout(request):
-    from django.contrib.auth import logout
-    logout(request)
-    return HttpResponseRedirect('/login')
-
-def ub_login(request):
-    from django.contrib.auth import authenticate, login
-    status = 200
-    if request.user.is_authenticated():
-        return HttpResponseRedirect('/')
-    form = LoginForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        redirect_to = request.REQUEST.get('next', '')
-        email_username = request.POST['email']
-        username = ''
-        if not re.match(r"[^@]+@[^@]+\.[^@]+", email_username):
-            username = email_username
-        else:
-            user = get_model_or_none(User,email=email_username)
-            if user is not None:
-                username = user.username
-        user = authenticate(username=username, password=request.POST['password1'])
-
-        if user is not None:
-            if user.is_active:
-                login(request, user)
-                if redirect_to != '':
-                    return HttpResponseRedirect(redirect_to)
-                return HttpResponseRedirect('/')
-            else:
-                errors = form._errors.setdefault("__all__", ErrorList())
-                status = 403
-                errors.append(u"Account is not activated yet.")
-        else:
-            errors = form._errors.setdefault("__all__", ErrorList())
-            status = 403
-            errors.append(u"Username or password is incorrect.")
-    elif request.method == 'POST':
-        status =403
-    return render(request, 'login.html',{'form':form},status=status)
 def home(request):
     return render(request,'home.html')
 
@@ -264,6 +182,7 @@ class Registration(TemplateView):
                 send_activation_email(email=user_profile.email, host=request.get_host(),activation_key=activation_key)
                 registration_model.save()
             return HttpResponseRedirect('/registration-successful/')
+        context['form'] = form
         return self.render_to_response(context)
 
 
@@ -335,6 +254,10 @@ class UserProfile(TemplateView):
 
     def __init__(self):
         self.user_profile = None
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
     def get(self, request, *args, **kwargs):
         self.user_profile = get_model_or_none(models.UserProfile, username=kwargs['username'])
