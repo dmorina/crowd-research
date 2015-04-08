@@ -13,7 +13,16 @@ from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
 import re
 
+
 def get_model_or_none(model, *args, **kwargs):
+    """
+        Get model object or return None, this will catch the DoesNotExist error.
+
+        Keyword Arguments:
+        model -- this is the model you want to query from
+        other parameters are of variable length: e.g id=1 or username='jon.snow'
+
+    """
     try:
         return model.objects.get(*args, **kwargs)
     except model.DoesNotExist:
@@ -21,21 +30,36 @@ def get_model_or_none(model, *args, **kwargs):
 
 
 class Registration(TemplateView):
+    """
+        This class handles the registration process.
+    """
     template_name = "registration/register.html"
 
     def __init__(self):
         self.username = ''
 
     def get_context_data(self, **kwargs):
+        """
+            This will get the original context and it will update the form with a new RegistrationForm
+            either with the data from the POST or an empty form.
+        """
         context = super().get_context_data(**kwargs)
         context['form'] = RegistrationForm(self.request.POST or None)
         return context
 
     def get(self, request, *args, **kwargs):
+        """
+            Handles the GET method, renders the defined template with the current context
+        """
         context = self.get_context_data(**kwargs)
         return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
+        """
+            Handles the POST method, this validates the registration form and if valid it will create a new user +
+            user profile. Currently the emails are not enabled (EMAIL_ENABLED is set to False in the settings) so the
+            account will be activated right away, otherwise this will send an activation link to the user.
+        """
         context = self.get_context_data(**kwargs)
         form = context['form']
         if form.is_valid():
@@ -69,6 +93,13 @@ class Registration(TemplateView):
         return self.render_to_response(context)
 
     def send_activation_email(email,host,activation_key):
+        """
+            This sends the activation link to the user, the content will be moved to template files
+
+            Keyword Arguments:
+            host -- the domain of the website
+            activation_key -- the key which activates the account
+        """
         from django.core.mail import EmailMultiAlternatives
 
         subject, from_email, to = 'Crowdsourcing Account Activation', settings.EMAIL_SENDER, email
@@ -87,6 +118,10 @@ class Registration(TemplateView):
         msg.send()
 
 class Login(TemplateView):
+    """
+        This class handles the login process, it checks the user credentials and if redirected from another page
+        it will redirect to that page after the login is done successfully.
+    """
     template_name = 'login.html'
 
     def __init__(self):
@@ -101,12 +136,19 @@ class Login(TemplateView):
         return context
 
     def get(self, request, *args, **kwargs):
+        """
+            Renders the login form, if the user is already authenticated will redirect to
+            the user profile (later to be changed to Home)
+        """
         if self.request.user.is_authenticated():
             return HttpResponseRedirect('/users/'+self.request.user.username)
         context = self.get_context_data(**kwargs)
         return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
+        """
+            This handles the login POST method, it enables the user to login with username or password.
+        """
         context = self.get_context_data(**kwargs)
         form = context['form']
         if form.is_valid():
@@ -150,6 +192,10 @@ class Logout(TemplateView):
 
 
 class UserProfile(TemplateView):
+    """
+        This class handles user profile rendering, changes and so on.
+
+    """
     template_name = 'profile.html'
 
     def __init__(self):
@@ -157,9 +203,19 @@ class UserProfile(TemplateView):
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
+        """
+            This is necessary because all the methods of this class need to be protected with login_required decorator.
+        """
         return super().dispatch(*args, **kwargs)
 
     def get(self, request, *args, **kwargs):
+        """
+            Gets the requested user profile and passes it to the template.
+            If the user profile does not exist it will render the 404 page.
+
+            Keyword Arguments:
+            kwargs['username'] -- the username from the URL
+        """
         self.user_profile = get_model_or_none(models.UserProfile, username=kwargs['username'])
         if self.user_profile is None:
             return render(request,'404.html')
@@ -168,6 +224,9 @@ class UserProfile(TemplateView):
 
 
 class ForgotPassword(TemplateView):
+    """
+        This takes care of the forgot password process.
+    """
     template_name = 'registration/forgot_password.html'
 
     def get_context_data(self, **kwargs):
@@ -180,6 +239,10 @@ class ForgotPassword(TemplateView):
         return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
+        """
+            Here we process the POST and if the form is valid (i.e email is valid)
+            then we send a password reset link to the user.
+        """
         context = self.get_context_data(**kwargs)
         form = context['form']
         if form.is_valid():
@@ -202,21 +265,26 @@ class ForgotPassword(TemplateView):
     #TODO timer for the reset key
     #TODO HTML templates should be moved to files
     def send_password_reset_email(email, host, reset_key):
+        """
+            This sends the email to the user, it will be moved to a new class in the future so that all emails are
+            processed by one class.
+            The email includes two links, one for changing the password and the other for discarding the forgot password request.
+        """
         from django.core.mail import EmailMultiAlternatives
 
         subject, from_email, to = 'Crowdsourcing Password Reset', settings.EMAIL_SENDER, email
-        activation_url = 'https://'+ host + '/reset-password/' +reset_key
+        reset_url = 'https://'+ host + '/reset-password/' +reset_key
         text_content = 'Hello, \n ' \
-                       'Please reset your password using the following link: \n' + activation_url+'/1' \
-                       '\nIf you did not request a password reset please click the following link: ' +activation_url+'/0' \
+                       'Please reset your password using the following link: \n' + reset_url+'/1' \
+                       '\nIf you did not request a password reset please click the following link: ' +reset_url+'/0' \
                        '\nGreetings, \nCrowdsourcing Team'
 
 
         html_content = '<h3>Hello,</h3>' \
                        '<p>Please reset your password using the following link: <br>' \
-                       '<a href="'+activation_url+'/1'+'">'+activation_url+'/1'+'</a></p>' \
+                       '<a href="'+reset_url+'/1'+'">'+reset_url+'/1'+'</a></p>' \
                                                                     "<br><p>If you didn't request a password reset please click the following link: <br>" + '' \
-                                                                    '<a href="'+activation_url+'/0'+'">'+activation_url+'/0'+'</a><br><br> Greetings,<br> <strong>Crowdsourcing Team</strong>'
+                                                                    '<a href="'+reset_url+'/0'+'">'+reset_url+'/0'+'</a><br><br> Greetings,<br> <strong>Crowdsourcing Team</strong>'
         msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
         msg.attach_alternative(html_content, "text/html")
         msg.send()
@@ -235,6 +303,9 @@ def home(request):
     return render(request,'home.html')
 
 def activate_account(request, activation_key):
+    """
+        this handles the account activation after the user follows the link from his/her email.
+    """
     from django.contrib.auth.models import User
     try:
         activate_user = models.RegistrationModel.objects.get(activation_key=activation_key)
@@ -249,6 +320,9 @@ def activate_account(request, activation_key):
 
 #TODO check expired keys
 def reset_password(request, reset_key, enable):
+    """
+        Resets the user password if requested from the user.
+    """
     from crowdsourcing.models import PasswordResetModel
     form = PasswordResetForm(request.POST or None)
     if enable == "1":
