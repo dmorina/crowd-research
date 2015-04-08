@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    {% block title %}
+    <title>Profile</title>
+    {% endblock title%}
+
+</head>
+{%block main%}
+    {{ user_profile }}
+{% endblock main %}
+</html>
