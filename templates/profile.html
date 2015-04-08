@@ -1,14 +1,66 @@
 {% extends "base.html" %}
-<!DOCTYPE html>
-<html>
-<head lang="en">
-    <meta charset="UTF-8">
     {% block title %}
     <title>Profile</title>
     {% endblock title%}
 
-</head>
 {%block main%}
-    {{ user_profile.last_name }}
+
+<div class="container">
+	<div class="row">
+		<div class="col-md-12 user-details">
+            <div class="user-image">
+                <img src="https://cdn0.iconfinder.com/data/icons/PRACTIKA/256/user.png" width="110" height="110" alt="" class="img-circle">
+            </div>
+            <div class="user-info-block">
+                <div class="user-heading">
+                    <h3>{{user.first_name}} {{user.last_name}}</h3>
+                    <span class="help-block"></span>
+                </div>
+                <ul class="navigation">
+                    <li class="active">
+                        <a data-toggle="tab" href="#personalInformation">
+                            <span class="glyphicon glyphicon-user"></span>
+                            <span>Personal Information</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a data-toggle="tab" href="#skills">
+                            <span class="glyphicon glyphicon-cog"></span>
+                            <span>Skills</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a data-toggle="tab" href="#network">
+                            <span class="glyphicon glyphicon-globe"></span>
+                            <span>Network</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a data-toggle="tab" href="#previousWork">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                            <span>Previous Work</span>
+                        </a>
+                    </li>
+                </ul>
+                <div class="user-body">
+                    <div class="tab-content">
+                        <div id="personalInformation" class="tab-pane active">
+                            <h4>Personal Information</h4>
+                        </div>
+                        <div id="skills" class="tab-pane">
+                            <h4>Skills</h4>
+                        </div>
+                        <div id="network" class="tab-pane">
+                            <h4>Network</h4>
+                        </div>
+                        <div id="previousWork" class="tab-pane">
+                            <h4>Previous Work</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+	</div>
+</div>
+
 {% endblock main %}
-</html>
