@@ -34,9 +34,10 @@
             {% endif %}
              {% if user.is_authenticated %}
              <li><a href="/notifications">Notifications</a></li>
+              <a class="navbar-text" href="/users/{{ user.username }}">{{ user.first_name }}</a>
 
              <li class="dropdown">
-              <a data-toggle="dropdown" class="dropdown-toggle" href="">Account <span class="caret"></span></a>
+              <a data-toggle="dropdown" class="dropdown-toggle pull-right" href="#"> <span class="caret"></span></a>
               <ul role="menu" class="dropdown-menu">
                 <li><a href="/settings">Settings</a></li>
                 <li><a href="/downloads">Downloads</a></li>
@@ -46,13 +47,8 @@
                 <li><a href="/logout">Sign out</a></li>
               </ul>
             </li>
-                 {% if user.first_name != '' and user.last_name != '' %}
-                     <p class="navbar-text">Signed in as {{ user.first_name }} {{ user.last_name }}</p>
-                 {% else %}
-                     <p class="navbar-text pull-right">Signed in as {{  user.username }}</p>
 
-                 {% endif %}
-              {% endif %}
+            {% endif %}
           </ul>
         </div><!--/.nav-collapse -->
       </div>

@@ -13,53 +13,6 @@ from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
 import re
 
-#Will be moved to Class Views
-def registration_successful(request):
-    return render(request,'registration/registration_successful.html')
-
-def terms(request):
-    return render(request,'registration/terms.html')
-
-def home(request):
-    return render(request,'home.html')
-
-def activate_account(request, activation_key):
-    from django.contrib.auth.models import User
-    try:
-        activate_user = models.RegistrationModel.objects.get(activation_key=activation_key)
-        if activate_user:
-            usr = User.objects.get(id=activate_user.user_id)
-            usr.is_active = 1
-            usr.save()
-            activate_user.delete()
-            return render(request,'registration/registration_complete.html')
-    except:
-        return HttpResponseRedirect('/')
-
-#TODO check expired keys
-def reset_password(request, reset_key, enable):
-    from crowdsourcing.models import PasswordResetModel
-    form = PasswordResetForm(request.POST or None)
-    if enable == "1":
-        pass
-        #return render(request, 'registration/ignore_password_reset.html')
-    elif enable == "0":
-        try:
-            password_reset = PasswordResetModel.objects.get(reset_key=reset_key)
-            password_reset.delete()
-        except:
-            pass
-        return render(request, 'registration/ignore_password_reset.html')
-    if request.method == 'POST' and form.is_valid():
-        #try:
-        password_reset = PasswordResetModel.objects.get(reset_key=reset_key)
-        user = User.objects.get(id = password_reset.user_id)
-        user.set_password(request.POST['password1'])
-        user.save()
-        password_reset.delete()
-        return render(request, 'registration/password_reset_successful.html')
-    return render(request, 'registration/reset_password.html',{'form':form})
-
 def get_model_or_none(model, *args, **kwargs):
     try:
         return model.objects.get(*args, **kwargs)
@@ -149,7 +102,7 @@ class Login(TemplateView):
 
     def get(self, request, *args, **kwargs):
         if self.request.user.is_authenticated():
-            return HttpResponseRedirect('/')
+            return HttpResponseRedirect('/users/'+self.request.user.username)
         context = self.get_context_data(**kwargs)
         return self.render_to_response(context)
 
@@ -172,7 +125,7 @@ class Login(TemplateView):
                     login(request, self.user)
                     if self.redirect_to != '':
                         return HttpResponseRedirect(self.redirect_to)
-                    return HttpResponseRedirect('/')
+                    return HttpResponseRedirect('/users/'+self.request.user.username) #later redirect to home
                 else:
                     errors = form._errors.setdefault("__all__", ErrorList())
                     self.status = 403
@@ -267,3 +220,53 @@ class ForgotPassword(TemplateView):
         msg.attach_alternative(html_content, "text/html")
         msg.send()
 
+
+
+#Will be moved to Class Views
+#################################################
+def registration_successful(request):
+    return render(request,'registration/registration_successful.html')
+
+def terms(request):
+    return render(request,'registration/terms.html')
+
+def home(request):
+    return render(request,'home.html')
+
+def activate_account(request, activation_key):
+    from django.contrib.auth.models import User
+    try:
+        activate_user = models.RegistrationModel.objects.get(activation_key=activation_key)
+        if activate_user:
+            usr = User.objects.get(id=activate_user.user_id)
+            usr.is_active = 1
+            usr.save()
+            activate_user.delete()
+            return render(request,'registration/registration_complete.html')
+    except:
+        return HttpResponseRedirect('/')
+
+#TODO check expired keys
+def reset_password(request, reset_key, enable):
+    from crowdsourcing.models import PasswordResetModel
+    form = PasswordResetForm(request.POST or None)
+    if enable == "1":
+        pass
+        #return render(request, 'registration/ignore_password_reset.html')
+    elif enable == "0":
+        try:
+            password_reset = PasswordResetModel.objects.get(reset_key=reset_key)
+            password_reset.delete()
+        except:
+            pass
+        return render(request, 'registration/ignore_password_reset.html')
+    if request.method == 'POST' and form.is_valid():
+        #try:
+        password_reset = PasswordResetModel.objects.get(reset_key=reset_key)
+        user = User.objects.get(id = password_reset.user_id)
+        user.set_password(request.POST['password1'])
+        user.save()
+        password_reset.delete()
+        return render(request, 'registration/password_reset_successful.html')
+    return render(request, 'registration/reset_password.html',{'form':form})
+#################################################
