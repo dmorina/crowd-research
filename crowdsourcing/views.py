@@ -264,6 +264,7 @@ class Registration(TemplateView):
                 send_activation_email(email=user_profile.email, host=request.get_host(),activation_key=activation_key)
                 registration_model.save()
             return HttpResponseRedirect('/registration-successful/')
+        return self.render_to_response(context)
 
 
 class Login(TemplateView):
@@ -339,4 +340,4 @@ class UserProfile(TemplateView):
         self.user_profile = get_model_or_none(models.UserProfile, username=kwargs['username'])
         if self.user_profile is None:
             return render(request,'404.html')
-        return render(request, 'profile.html', {'user_profile': kwargs['username']})
+        return render(request, 'profile.html', {'user_profile': self.user_profile})
