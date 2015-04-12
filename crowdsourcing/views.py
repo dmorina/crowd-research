@@ -153,7 +153,7 @@ class Login(TemplateView):
         form = context['form']
         if form.is_valid():
             from django.contrib.auth import authenticate, login
-            self.redirect_to = request.REQUEST.get('next', '')
+            self.redirect_to = request.POST.get('next', '')
             email_or_username = request.POST['email']
             if not re.match(r"[^@]+@[^@]+\.[^@]+", email_or_username):
                 self.username = email_or_username

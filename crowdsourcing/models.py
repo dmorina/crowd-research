@@ -45,7 +45,8 @@ class UserProfile(User):
     nationality = models.ManyToManyField(Country)
     verified = models.BooleanField(default=False)
     picture = models.BinaryField(null=True)
-    friends = models.ManyToManyField('self', through='Friendship', through_fields=('user_source','user_target'), symmetrical=False)
+    friends = models.ManyToManyField('self', through='Friendship',
+                                      symmetrical=False) #through_fields=('user_source','user_target'),
     roles = models.ManyToManyField(Role, through='UserRoles')
     #def __init__(self):
         #super().__init__()
