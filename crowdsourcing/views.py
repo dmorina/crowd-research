@@ -3,7 +3,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from crowdsourcing.forms import *
 from django.forms.util import ErrorList
 from django.contrib.auth.decorators import login_required
-import hashlib, random, httplib2
+import hashlib, random #, httplib2
 import json, datetime
 from crowdsourcing import models
 from crowdresearch import settings

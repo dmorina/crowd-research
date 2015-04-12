@@ -70,10 +70,10 @@ WSGI_APPLICATION = 'crowdresearch.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'mysql.connector.django',
         'NAME': 'dmorina$crowdresearch',
         'HOST': 'localhost',
-        'USERNAME': 'dmorina',
+        'USER': 'dmorina',
         'PASSWORD': 'VntNVvpsqvmoYvJ0',
         'PORT': '3306',
     }
