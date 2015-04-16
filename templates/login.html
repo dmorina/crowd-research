@@ -11,7 +11,7 @@
 </head>
 {%block main%}
 <div class="center login-panel">
-    <form role="form" method="post">
+    <form role="form" ng-submit="lc.login()">
     {% csrf_token %}
          <fieldset>
             <h3 style="color:dimgray">Please Sign In</h3>
@@ -36,8 +36,7 @@
          </fieldset>
 
     </form>
-
-
+    {% include 'javascripts.html' %}
 
 </div>
 {% endblock main %}
