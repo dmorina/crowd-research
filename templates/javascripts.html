@@ -1,0 +1,12 @@
+{% load compress %}
+{% load staticfiles %}
+
+{% compress js %}
+ <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script type="text/javascript" src="{% static 'bootstrap3/js/bootstrap.js' %}"></script>
+
+<script type="text/javascript" src="{% static 'angular/angular.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'angular/angular-route.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'angular/angular-cookies.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'javascript/crowdresearch.js' %}"></script>
+{% endcompress %}
