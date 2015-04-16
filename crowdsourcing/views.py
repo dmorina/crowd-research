@@ -14,7 +14,7 @@ from django.utils.decorators import method_decorator
 from rest_framework import status, views
 from rest_framework.response import Response
 from crowdsourcing.posts import UserProfileSerializer
-
+import re
 def get_model_or_none(model, *args, **kwargs):
     """
         Get model object or return None, this will catch the DoesNotExist error.
@@ -117,7 +117,7 @@ class Registration(TemplateView):
         msg.attach_alternative(html_content, "text/html")
         msg.send()
 
-class Login(views.APIView):
+class Login(TemplateView):
     """
         This class handles the login process, it checks the user credentials and if redirected from another page
         it will redirect to that page after the login is done successfully.
