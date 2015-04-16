@@ -116,12 +116,13 @@ class Registration(TemplateView):
         msg.attach_alternative(html_content, "text/html")
         msg.send()
 
-class Login(TemplateView):
+class Login(views.APIView):
     """
         This class handles the login process, it checks the user credentials and if redirected from another page
         it will redirect to that page after the login is done successfully.
     """
     template_name = 'login.html'
+
 
     def __init__(self):
         self.status = 200
@@ -148,37 +149,45 @@ class Login(TemplateView):
         """
             This handles the login POST method, it enables the user to login with username or password.
         """
+
+        data = json.loads(request.body)
+
+        email = data.get('email', None)
+        password = data.get('password', None)
+
         context = self.get_context_data(**kwargs)
         form = context['form']
         if form.is_valid():
             from django.contrib.auth import authenticate, login
             self.redirect_to = request.POST.get('next', '')
-            email_or_username = request.POST['email']
+            email_or_username = email
             if not re.match(r"[^@]+@[^@]+\.[^@]+", email_or_username):
                 self.username = email_or_username
             else:
                 user = get_model_or_none(User,email=email_or_username)
                 if user is not None:
                     self.username = user.username
-            self.user = authenticate(username=self.username, password=request.POST['password1'])
+            self.user = authenticate(username=self.username, password=password)
             if self.user is not None:
                 if self.user.is_active:
                     login(request, self.user)
-                    if self.redirect_to != '':
-                        return HttpResponseRedirect(self.redirect_to)
-                    return HttpResponseRedirect('/users/'+self.request.user.username) #later redirect to home
+                    user_profile = UserProfileSerializer()
                 else:
-                    errors = form._errors.setdefault("__all__", ErrorList())
-                    self.status = 403
-                    errors.append(u"Account is not activated yet.")
+                    return Response({
+                        'status': 'Unauthorized',
+                        'message': 'This account has been disabled.'
+                    }, status=status.HTTP_401_UNAUTHORIZED)
             else:
-                errors = form._errors.setdefault("__all__", ErrorList())
-                self.status = 403
-                errors.append(u"Username or password is incorrect.")
+                return Response({
+                'status': 'Unauthorized',
+                'message': 'Username/password combination invalid.'
+            }, status=status.HTTP_401_UNAUTHORIZED)
         else:
-            self.status = 403
-        context['form'] = form
-        return self.render_to_response(context)
+             #self.status = 403
+             return Response({
+                'status': 'Unauthorized',
+                'message': 'Username/password combination invalid.'
+            }, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class Logout(TemplateView):
