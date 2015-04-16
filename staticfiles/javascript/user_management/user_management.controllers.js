@@ -2,7 +2,7 @@
   'use strict';
 
   angular
-    .module('thinkster.user_management.controllers')
+    .module('crowdresearch.user_management.controllers')
       .controller('RegisterController', RegisterController)
       .controller('LoginController', LoginController)
       .controller('ProfileController', ProfileController)

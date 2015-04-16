@@ -3,8 +3,8 @@
   'use strict';
 
   angular
-    .module('crowdresearch.user_management.services')
-    .factory('User Management', UserManagement);
+    .module('crowdresearch.login.services')
+    .factory('UserManagement', UserManagement);
 
   UserManagement.$inject = ['$cookies', '$http'];
 

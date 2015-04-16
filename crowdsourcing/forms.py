@@ -103,6 +103,8 @@ class LoginForm(forms.Form):
                              widget=forms.TextInput(attrs={'class':'form-control',
                                                                     'placeholder':'Email or Username',
                                                                     'required':'',
+                                                                    'ng-model':'lc.username',
+                                                                    'id':'login__username',
 
 
                                                             })
@@ -110,5 +112,7 @@ class LoginForm(forms.Form):
     password1 = forms.CharField(widget=forms.PasswordInput(attrs={'class':'form-control',
                                                                   'required':'',
                                                                   'placeholder':'Password',
+                                                                  'ng-model':'lc.password',
+                                                                  'id':'login__password',
                                                                 }),
                                 label='')

@@ -5,7 +5,7 @@
       'use strict';
 
       angular
-        .module('thinkster.routes')
+        .module('crowdresearch.routes')
         .config(config);
 
       config.$inject = ['$routeProvider'];
@@ -18,7 +18,11 @@
         $routeProvider.when('/register', {
           controller: 'RegisterController',
           controllerAs: 'rc',
-          templateUrl: '/templates/user_management/register.html'
+          templateUrl: '/templates/registration/register.html'
+        }).when('/login', {
+          controller: 'LoginController',
+          controllerAs: 'lc',
+          templateUrl: '/templates/login.html'
         }).otherwise('/');
       }
 })();

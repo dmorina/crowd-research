@@ -32,7 +32,7 @@ REST_FRAMEWORK = {
     'DEFAULT_MODEL_SERIALIZER_CLASS':
         'rest_framework.serializers.HyperlinkedModelSerializer',
     'DEFAULT_AUTHENTICATION_CLASSES': (
-         'rest_framework.authentication.OAuth2Authentication',),
+         'rest_framework.authentication.SessionAuthentication',),
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': [
@@ -49,6 +49,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'compressor',
+    'rest_framework',
     'crowdsourcing',
 )
 
@@ -71,12 +72,8 @@ WSGI_APPLICATION = 'crowdresearch.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'mysql.connector.django',
-        'NAME': 'dmorina$crowdresearch',
-        'HOST': 'localhost',
-        'USER': 'dmorina',
-        'PASSWORD': 'VntNVvpsqvmoYvJ0',
-        'PORT': '3306',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'crowdresearch.db',
     }
 }
 
@@ -109,6 +106,7 @@ STATICFILES_FINDERS = (
     # other finders..
     'compressor.finders.CompressorFinder',
 )
+COMPRESS_ROOT = '/compress'
 
 TEMPLATE_DIRS = (
     os.path.join(BASE_DIR,  'templates'),
