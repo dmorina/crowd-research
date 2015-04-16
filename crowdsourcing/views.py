@@ -11,8 +11,8 @@ from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.models import User
 from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
-import re
-
+from rest_framework import status, views
+from rest_framework.response import Response
 
 def get_model_or_none(model, *args, **kwargs):
     """
@@ -76,7 +76,6 @@ class Registration(TemplateView):
             if not settings.EMAIL_ENABLED:
                 user_profile.is_active = 1
             user_profile.first_name = data['first_name']
-            user_profile.last_name = data['last_name']
             user_profile.save()
             salt = hashlib.sha1(str(random.random()).encode('utf-8')).hexdigest()[:5]
             if settings.EMAIL_ENABLED:
