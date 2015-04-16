@@ -13,6 +13,7 @@ from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
 from rest_framework import status, views
 from rest_framework.response import Response
+from crowdsourcing.posts import UserProfileSerializer
 
 def get_model_or_none(model, *args, **kwargs):
     """
@@ -171,7 +172,8 @@ class Login(views.APIView):
             if self.user is not None:
                 if self.user.is_active:
                     login(request, self.user)
-                    user_profile = UserProfileSerializer()
+                    serialized = UserProfileSerializer(self.user)
+                    return Response(serialized.data)
                 else:
                     return Response({
                         'status': 'Unauthorized',
