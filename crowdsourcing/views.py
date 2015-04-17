@@ -359,6 +359,7 @@ def reset_password(request, reset_key, enable):
         Resets the user password if requested from the user.
     """
     from crowdsourcing.models import PasswordResetModel
+    #this must be changed for angular support
     form = PasswordResetForm(request.POST or None)
     if enable == "1":
         pass
