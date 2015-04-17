@@ -2,14 +2,14 @@
 {% load staticfiles %}
 
 {% compress js %}
- <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script type="text/javascript" src="{% static 'jquery/jquery-2.1.1.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'bootstrap3/js/bootstrap.js' %}"></script>
 
 <script type="text/javascript" src="{% static 'angular/angular.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'angular/angular-route.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'angular/angular-cookies.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'javascript/crowdresearch.js' %}"></script>
-<script type="text/javascript" src="{% static 'javascript/login/login.module.js' %}"></script>
-<script type="text/javascript" src="{% static 'javascript/login/services/login.service.js' %}"></script>
-<script type="text/javascript" src="{% static 'javascript/login/controllers/login.controller.js' %}"></script>
+<script type="text/javascript" src="{% static 'javascript/user_management/user_management.module.js' %}"></script>
+<script type="text/javascript" src="{% static 'javascript/user_management/services/user_management.service.js' %}"></script>
+<script type="text/javascript" src="{% static 'javascript/user_management/controllers/user_management.controller.js' %}"></script>
 {% endcompress %}

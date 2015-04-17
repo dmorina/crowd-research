@@ -3,7 +3,6 @@
  */
 (function () {
   'use strict';
-
   angular
     .module('crowdresearch.user_management', [
       'crowdresearch.user_management.controllers',

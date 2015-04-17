@@ -1,8 +1,5 @@
 #Requirements:
-    Python 3.2+
-    Django 1.8
-    httplib2
-
+    see requirements.txt
 #Installation:
     currently we have an issue with User model from Django as it's cannot be used in an app with no migrations, please follow these steps
     1. comment out the crowdsourcing app in the crowdresearch.settings file INSTALLED_APPS

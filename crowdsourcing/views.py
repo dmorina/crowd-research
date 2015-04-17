@@ -11,7 +11,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.models import User
 from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
-from rest_framework import status, views
+from rest_framework import status, views as rest_framework_views
 from rest_framework.response import Response
 from crowdsourcing.posts import UserProfileSerializer
 import re
@@ -30,7 +30,7 @@ def get_model_or_none(model, *args, **kwargs):
         return None
 
 
-class Registration(TemplateView):
+class Registration(TemplateView, rest_framework_views.APIView):
     """
         This class handles the registration process.
     """
@@ -61,36 +61,54 @@ class Registration(TemplateView):
             user profile. Currently the emails are not enabled (EMAIL_ENABLED is set to False in the settings) so the
             account will be activated right away, otherwise this will send an activation link to the user.
         """
-        context = self.get_context_data(**kwargs)
-        form = context['form']
-        if form.is_valid():
-            data = request.POST.copy()
-            user_check = User.objects.filter(username=data['first_name'].lower()+'.'+data['last_name'].lower())
-            if not user_check:
-                self.username = data['first_name'].lower()+'.'+data['last_name'].lower()
-            else:
-                #TODO username generating function
-                self.username = data['email']
-            data['username'] = self.username
-            from crowdsourcing.models import RegistrationModel
-            user_profile = models.UserProfile.objects.create_user(data['username'],data['email'],data['password1'])
-            if not settings.EMAIL_ENABLED:
-                user_profile.is_active = 1
-            user_profile.first_name = data['first_name']
-            user_profile.save()
-            salt = hashlib.sha1(str(random.random()).encode('utf-8')).hexdigest()[:5]
-            if settings.EMAIL_ENABLED:
-                if isinstance(self.username, str):
-                    self.username = self.username.encode('utf-8')
-                activation_key = hashlib.sha1(salt.encode('utf-8')+self.username).hexdigest()
-                registration_model = RegistrationModel()
-                registration_model.user = User.objects.get(id=user_profile.id)
-                registration_model.activation_key = activation_key
-                self.send_activation_email(email=user_profile.email, host=request.get_host(),activation_key=activation_key)
-                registration_model.save()
-            return HttpResponseRedirect('/registration-successful/')
-        context['form'] = form
-        return self.render_to_response(context)
+        #context = self.get_context_data(**kwargs)
+        #form = context['form']
+        json_data = json.loads(request.body.decode('utf-8'))
+        form = RegistrationForm()
+        form.email = json_data.get('email','')
+        form.first_name = json_data.get('first_name','')
+        form.last_name = json_data.get('last_name','')
+        form.password1 = json_data.get('password1','')
+        form.password2 = json_data.get('password2','')
+        try:
+            form.clean()
+        except forms.ValidationError as e:
+            return Response({
+                'status': 'Error',
+                'message': e.message
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        data = json_data
+        user_check = User.objects.filter(username=data['first_name'].lower()+'.'+data['last_name'].lower())
+        if not user_check:
+            self.username = data['first_name'].lower()+'.'+data['last_name'].lower()
+        else:
+            #TODO username generating function
+            self.username = data['email']
+        data['username'] = self.username
+        from crowdsourcing.models import RegistrationModel
+        user_profile = models.UserProfile.objects.create_user(data['username'],data['email'],data['password1'])
+        if not settings.EMAIL_ENABLED:
+            user_profile.is_active = 1
+        user_profile.first_name = data['first_name']
+        user_profile.save()
+        salt = hashlib.sha1(str(random.random()).encode('utf-8')).hexdigest()[:5]
+        if settings.EMAIL_ENABLED:
+            if isinstance(self.username, str):
+                self.username = self.username.encode('utf-8')
+            activation_key = hashlib.sha1(salt.encode('utf-8')+self.username).hexdigest()
+            registration_model = RegistrationModel()
+            registration_model.user = User.objects.get(id=user_profile.id)
+            registration_model.activation_key = activation_key
+            self.send_activation_email(email=user_profile.email, host=request.get_host(),activation_key=activation_key)
+            registration_model.save()
+        return Response({
+                'status': 'Success',
+                'message': "Registration was successful."
+            }, status=status.HTTP_201_CREATED)
+        #return HttpResponseRedirect('/registration-successful/')
+        #context['form'] = form
+        #return self.render_to_response(context)
 
     def send_activation_email(email,host,activation_key):
         """
@@ -117,7 +135,7 @@ class Registration(TemplateView):
         msg.attach_alternative(html_content, "text/html")
         msg.send()
 
-class Login(TemplateView):
+class Login(rest_framework_views.APIView, TemplateView):
     """
         This class handles the login process, it checks the user credentials and if redirected from another page
         it will redirect to that page after the login is done successfully.
@@ -144,6 +162,7 @@ class Login(TemplateView):
         if self.request.user.is_authenticated():
             return HttpResponseRedirect('/users/'+self.request.user.username)
         context = self.get_context_data(**kwargs)
+        #form = LoginForm(self.request.POST or None)
         return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
@@ -151,46 +170,37 @@ class Login(TemplateView):
             This handles the login POST method, it enables the user to login with username or password.
         """
 
-        data = json.loads(request.body)
+        data = json.loads(request.body.decode('utf-8'))
 
-        email = data.get('email', None)
-        password = data.get('password', None)
+        email = data.get('username', '')
+        password = data.get('password', '')
 
-        context = self.get_context_data(**kwargs)
-        form = context['form']
-        if form.is_valid():
-            from django.contrib.auth import authenticate, login
-            self.redirect_to = request.POST.get('next', '')
-            email_or_username = email
-            if not re.match(r"[^@]+@[^@]+\.[^@]+", email_or_username):
-                self.username = email_or_username
-            else:
-                user = get_model_or_none(User,email=email_or_username)
-                if user is not None:
-                    self.username = user.username
-            self.user = authenticate(username=self.username, password=password)
-            if self.user is not None:
-                if self.user.is_active:
-                    login(request, self.user)
-                    serialized = UserProfileSerializer(self.user)
-                    return Response(serialized.data)
-                else:
-                    return Response({
-                        'status': 'Unauthorized',
-                        'message': 'This account has been disabled.'
-                    }, status=status.HTTP_401_UNAUTHORIZED)
+        from django.contrib.auth import authenticate, login
+        self.redirect_to = request.POST.get('next', '') #to be changed, POST does not contain any data
+        email_or_username = email
+        if not re.match(r"[^@]+@[^@]+\.[^@]+", email_or_username):
+            self.username = email_or_username
+        else:
+            user = get_model_or_none(User,email=email_or_username)
+            if user is not None:
+                self.username = user.username
+
+        self.user = authenticate(username=self.username, password=password)
+        if self.user is not None:
+            if self.user.is_active:
+                login(request, self.user)
+                response_data = {"status":"Success", "username":self.username,"redirect_to": self.redirect_to}
+                return Response(response_data)
             else:
                 return Response({
-                'status': 'Unauthorized',
-                'message': 'Username/password combination invalid.'
-            }, status=status.HTTP_401_UNAUTHORIZED)
+                    'status': 'Unauthorized',
+                    'message': 'Account is not activated yet.'
+                }, status=status.HTTP_401_UNAUTHORIZED)
         else:
-             #self.status = 403
-             return Response({
-                'status': 'Unauthorized',
-                'message': 'Username/password combination invalid.'
-            }, status=status.HTTP_401_UNAUTHORIZED)
-
+            return Response({
+            'status': 'Unauthorized',
+            'message': 'Username or password is incorrect.'
+        }, status=status.HTTP_401_UNAUTHORIZED)
 
 class Logout(TemplateView):
     template_name = 'login.html'
@@ -233,7 +243,7 @@ class UserProfile(TemplateView):
         return render(request, 'profile.html', {'user': self.user_profile, 'friends': friends})
 
 
-class ForgotPassword(TemplateView):
+class ForgotPassword(TemplateView, rest_framework_views.APIView):
     """
         This takes care of the forgot password process.
     """
@@ -253,24 +263,39 @@ class ForgotPassword(TemplateView):
             Here we process the POST and if the form is valid (i.e email is valid)
             then we send a password reset link to the user.
         """
-        context = self.get_context_data(**kwargs)
-        form = context['form']
-        if form.is_valid():
-            from crowdsourcing.models import PasswordResetModel
-            email = request.POST['email']
-            user = User.objects.get(email=email)
-            salt = hashlib.sha1(str(random.random()).encode('utf-8')).hexdigest()[:5]
-            username = user.username
-            reset_key = hashlib.sha1(str(salt+username).encode('utf-8')).hexdigest()
-            password_reset = PasswordResetModel()
-            password_reset.user = user
-            password_reset.reset_key = reset_key
-            if settings.EMAIL_ENABLED:
-                password_reset.save()
-                self.send_password_reset_email(email=email, host=request.get_host(), reset_key=reset_key)
-            return render(request,'registration/password_reset_email_sent.html')
-        context['form'] = form
-        return self.render_to_response(context)
+        #context = self.get_context_data(**kwargs)
+        #form = context['form']
+        email = json.loads(request.body.decode('utf-8')).get('email','')
+        form = ForgotPasswordForm()
+        form.email = email
+        #temporary check, will be done properly
+        try:
+            form.clean()
+        except forms.ValidationError:
+            return Response({
+                'status': 'Error',
+                'message': 'Invalid email entered.'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        from crowdsourcing.models import PasswordResetModel
+
+        user = User.objects.get(email=email)
+        salt = hashlib.sha1(str(random.random()).encode('utf-8')).hexdigest()[:5]
+        username = user.username
+        reset_key = hashlib.sha1(str(salt+username).encode('utf-8')).hexdigest()
+        password_reset = PasswordResetModel()
+        password_reset.user = user
+        password_reset.reset_key = reset_key
+        if settings.EMAIL_ENABLED:
+            password_reset.save()
+            self.send_password_reset_email(email=email, host=request.get_host(), reset_key=reset_key)
+        return Response({
+                'status': 'Success',
+                'message': 'Email sent.'
+            }, status=status.HTTP_201_CREATED)
+        #return render(request,'registration/password_reset_email_sent.html')
+        #context['form'] = form
+        #return self.render_to_response(context)
 
     #TODO timer for the reset key
     #TODO HTML templates should be moved to files

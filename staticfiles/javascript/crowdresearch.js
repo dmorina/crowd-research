@@ -8,14 +8,12 @@
     angular
         .module('crowdresearch', [
         'crowdresearch.routes',
-        'crowdresearch.login',
-        'crowdresearch.config'
+        'crowdresearch.user_management'
         ]);
 
     angular
         .module('crowdresearch.routes', ['ngRoute']);
-    angular
-        .module('crowdresearch.config', []);
+
 })();
 
 

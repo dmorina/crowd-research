@@ -10,19 +10,17 @@
 
       config.$inject = ['$routeProvider'];
 
-      /**
-      * @name config
-      * @desc Define valid application routes
-      */
       function config($routeProvider) {
         $routeProvider.when('/register', {
           controller: 'RegisterController',
-          controllerAs: 'rc',
           templateUrl: '/templates/registration/register.html'
         }).when('/login', {
           controller: 'LoginController',
-          controllerAs: 'lc',
           templateUrl: '/templates/login.html'
-        }).otherwise('/');
+        }).when('/forgot-password',{
+            controller:'ForgotPasswordController',
+            templateUrl: '/templates/registration/forgot_password.html'
+        })
+        .otherwise('/',{templateUrl:'/templates/home.html'});
       }
 })();

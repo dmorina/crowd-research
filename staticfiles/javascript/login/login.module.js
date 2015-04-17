@@ -9,8 +9,8 @@
 
   angular
     .module('crowdresearch.login', [
-      //'crowdresearch.login.controllers',
-      //'crowdresearch.login.services'
+      'crowdresearch.login.controllers',
+      'crowdresearch.login.services'
     ]);
 
   angular
