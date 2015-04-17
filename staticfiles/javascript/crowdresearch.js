@@ -23,10 +23,7 @@ angular
 
 run.$inject = ['$http'];
 
-/**
-* @name run
-* @desc Update xsrf $http headers to align with Django's defaults
-*/
+/*matching Django csrf token name*/
 function run($http) {
   $http.defaults.xsrfHeaderName = 'X-CSRFToken';
   $http.defaults.xsrfCookieName = 'csrftoken';

@@ -10,10 +10,6 @@
 
 
   function UserManagement($cookies, $http,$location, $window) {
-    /**
-    * @name UserManagement
-    * @desc The Factory to be returned
-    */
     var UserManagement = {
         register: register,
         login: login,
