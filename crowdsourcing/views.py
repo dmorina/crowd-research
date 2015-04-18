@@ -13,7 +13,6 @@ from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
 from rest_framework import status, views as rest_framework_views
 from rest_framework.response import Response
-from crowdsourcing.posts import UserProfileSerializer
 import re
 def get_model_or_none(model, *args, **kwargs):
     """
